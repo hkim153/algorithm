@@ -1,3 +1,9 @@
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.Collections;
+
 /**
  * 문제
  * 와일드카드는 다양한 운영체제에서 파일 이름의 일부만으로 파일 이름을 지정하는 방법이다.
@@ -39,8 +45,149 @@ heap
 help
 help
 papa
+
+6
+he?p
+3
+help
+heap
+helpp
+p
+3
+help
+papa
+hello
+bb
+1
+babbbc
+t*l?*o*r?ng*s
+3
+thelordoftherings
+tlorngs
+tllorrngs
+******a
+2
+aaaaaaaaaab
+abcdea
+a*a*a*a*a*a*a*a*a*a*a*a*a*a*a*a*a*a*a*a*a*a*a*a*a*a*a*a*a*a*a
+2
+ahfjsdhfjkdshfkjdshfkdsaojajfjaljaflkajflkdsaljflkaflsaffasfa54656454aafasfsdafsaaaaaaaaaaaaaaaaaaaa
+aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaabbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+
  */
 public class Main
 {
+    public static void main(String[] args) throws IOException
+    {
+        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+        int testCase = Integer.parseInt(br.readLine());
+        while(testCase-- > 0)
+        {
+            String wildCard = br.readLine();
+            int fileCount = Integer.parseInt(br.readLine());
+            ArrayList<String> ans = new ArrayList<>();
+            for(int i = 0; i < fileCount; i++)
+            {
+                String file = br.readLine();
+                int[][] memoization = new int[wildCard.length() + 100][file.length() + 100]; //넉넉히 잡는다
+                if(mySolve(0, 0, wildCard, file, memoization))
+                    ans.add(file);
+            }
 
+            Collections.sort(ans);
+            for(int k = 0; k < ans.size(); k++)
+            {
+                System.out.println(ans.get(k));
+            }
+        }
+    }
+
+    //책 답안지
+    private static boolean solve(int wo, int fo, String wildCard, String file, int[][] memoization)
+    {
+        if(memoization[wo][fo] != 0)
+        {
+            return memoization[wo][fo] == 1;
+        }
+
+        if(wo < wildCard.length() && fo < file.length() &&
+              (wildCard.charAt(wo) == '?' || wildCard.charAt(wo) == file.charAt(fo)))
+        {
+            if(solve(wo + 1, fo + 1, wildCard, file, memoization))
+            {
+                memoization[wo][fo] = 1;
+                return true;
+            }
+        }
+
+        if(wo == wildCard.length())
+        {
+            if(fo == file.length())
+            {
+                memoization[wo][fo] = 1;
+                return true;
+            }
+            else
+            {
+                memoization[wo][fo] = -1;
+                return false;
+            }
+        }
+
+        if(wildCard.charAt(wo) == '*')
+        {
+            if(solve(wo + 1, fo, wildCard, file, memoization) || (fo < file.length() && solve(wo, fo + 1, wildCard, file, memoization)))
+            {
+                memoization[wo][fo] = 1;
+                return true;
+            }
+        }
+
+        memoization[wo][fo] = -1;
+        return false;
+    }
+
+    //맞음
+    private static boolean mySolve(int wo, int fo, String wildCard, String file, int[][] memoization)
+    {
+        if(fo == file.length())
+        {
+            if(wo == wildCard.length())
+            {
+                return true;
+            }
+            else if(wo < file.length())
+            {
+                if(wildCard.charAt(wo) == '*')
+                    return solve(wo + 1, fo, wildCard, file, memoization);
+                else
+                    return false;
+            }
+            return false;
+        }
+        else if(wo == wildCard.length())
+        {
+            return false;
+        }
+
+        if(memoization[wo][fo] == -1)
+        {
+            return false;
+        }
+
+        if(wildCard.charAt(wo) == '*')
+        {
+            if(wo + 1 < wildCard.length() && (wildCard.charAt(wo + 1) == file.charAt(fo) || wildCard.charAt(wo + 1) == '*'))
+                return solve(wo + 1, fo, wildCard, file, memoization) || solve(wo, fo + 1, wildCard, file, memoization);
+            else
+                return solve(wo, fo + 1, wildCard, file, memoization);
+        }
+        else if(wildCard.charAt(wo) == '?' || wildCard.charAt(wo) == file.charAt(fo))
+        {
+            return solve(wo + 1, fo + 1, wildCard, file, memoization);
+        }
+
+        memoization[wo][fo] = -1;
+        return false;
+    }
 }
