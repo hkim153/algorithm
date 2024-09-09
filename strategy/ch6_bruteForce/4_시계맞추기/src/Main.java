@@ -1,3 +1,8 @@
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.StringTokenizer;
+
 /**
  * <a href="https://algospot.com/judge/problem/read/CLOCKSYNC">링크</a>
  * <p>
@@ -46,4 +51,112 @@
 9
  */
 public class Main
-{}
+{
+    public static int MAX_VALUE = (int) Math.pow(4, 10) + 1;
+    public static String SWITCHES =
+                    "0, 1, 2\n" +
+                    "3, 7, 9, 11\n" +
+                    "4, 10, 14, 15\n" +
+                    "0, 4, 5, 6, 7\n" +
+                    "6, 7, 8, 10, 12\n" +
+                    "0, 2, 14, 15\n" +
+                    "3, 14, 15\n" +
+                    "4, 5, 7, 14, 15\n" +
+                    "1, 2, 3, 4, 5\n" +
+                    "3, 4, 5, 9, 13\n";
+
+    public static void main(String[] args) throws IOException
+    {
+        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+        int testCases = Integer.parseInt(br.readLine());
+        while(testCases-- > 0)
+        {
+            int[] clocks = new int[16];
+            StringTokenizer st = new StringTokenizer(br.readLine());
+            int index = 0;
+            while(st.hasMoreTokens())
+            {
+                clocks[index++] = Integer.parseInt(st.nextToken());
+            }
+            int[][] switches = new int[10][16];
+            StringTokenizer st1 = new StringTokenizer(SWITCHES, "\n");
+            index = 0;
+            while(st1.hasMoreTokens())
+            {
+                StringTokenizer st2 = new StringTokenizer(st1.nextToken(), ",");
+                while(st2.hasMoreTokens())
+                {
+                    int clock = Integer.parseInt(st2.nextToken().trim());
+                    switches[index][clock] = 1;
+                }
+                index++;
+            }
+
+            /*System.out.println(Arrays.toString(clocks));
+            for(int i = 0; i < switches.length; i++)
+            {
+                System.out.println(Arrays.toString(switches[i]));
+            }*/
+
+            System.out.println(mySolution(clocks, switches));
+        }
+    }
+
+    //bookSolution이랑 같음
+    //중요한 점!
+    //1. 스위치는 4번 돌리면 제자리로 돌아오는 것이기 때문에 0~3번까지만 누른다.
+    //2. 스위츠를 누르는 순서는 상관없다. 0,1 누르나 1,0 누르나 똑같다.
+    // 그렇기 때문에 0번 부터 시작해서 10번 스위치까지 0~3번 눌러서 완탐으로 최저 switch를 선택할 수 있다.
+    // 경우의 수 4^10 = 1048576;
+    private static int mySolution(int[] clocks, int[][] switches)
+    {
+        int ret = mySolution(clocks, switches, 0);
+        if(ret == MAX_VALUE){
+            return -1;
+        }
+
+        return ret;
+    }
+    private static int mySolution(int[] clocks, int[][] switches, int curSwitch)
+    {
+        if(curSwitch == switches.length)
+        {
+            if(checkClocks(clocks))
+                return 0; //이게 왜 0인지 생각.
+            return MAX_VALUE;
+        }
+
+        int ret = MAX_VALUE;
+        for(int cnt = 0; cnt < 4; cnt++)
+        {
+            ret = Math.min(ret, cnt + mySolution(clocks, switches, curSwitch + 1)); //cnt + mySolution 생각
+            pushSwitch(clocks, switches[curSwitch]);
+        }
+
+        return ret;
+    }
+
+    private static boolean checkClocks(int[] clocks)
+    {
+        for(int clock : clocks)
+        {
+            if(clock != 12)
+                return false;
+        }
+        return true;
+    }
+    private static void pushSwitch(int[] clocks, int[] curSwitch)
+    {
+        for(int i = 0; i < curSwitch.length; i++)
+        {
+            if(curSwitch[i] == 1)
+            {
+                clocks[i] += 3;
+                if(clocks[i] == 15)
+                {
+                    clocks[i] = 3;
+                }
+            }
+        }
+    }
+}
